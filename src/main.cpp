@@ -3,6 +3,7 @@
 int main(int argc, char *argv[]) {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+
     string hex = "b";
     string hex1 = "8";
     BigInt n, m, ans;

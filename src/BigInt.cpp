@@ -104,7 +104,7 @@ BigInt BigInt::karatsubaMultiply(BigInt a, BigInt b) {
     BigInt p3 = karatsubaMultiply(al + ah, bl + bh);
     BigInt p2 = karatsubaMultiply(al, bl);  // d
     BigInt p1 = karatsubaMultiply(ah, bh);  // a
-    BigInt ans = shift(p1, n) + shift(p3 - (p1 + p2), k) + p2;
+    BigInt ans = shift(p1, 2 * (n - n >> 1)) + shift(p3 - (p1 + p2), n - (n >> 1)) + p2;
     ans.trim();
 
     return ans;
