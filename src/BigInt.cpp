@@ -9,6 +9,10 @@ void BigInt::fromHex(const string& hex) {
     } else if (hex[0] == '+') {
         ++pos;
     }
+    while (hex[pos] == '0') {
+        ++pos;
+    }
+
     uint8_t d;
     for (int16_t i = hex.length() - 1; i >= pos; --i) {
         if (isdigit(hex[i])) {
@@ -72,13 +76,54 @@ size_t BigInt::size() {
 }
 
 // shift left
-BigInt BigInt::shift(BigInt bn, uint16_t amount) {
+BigInt shiftLeft(BigInt bn, uint16_t amount) {
     BigInt res = bn;
-    // cout << 0 << endl;
     for (size_t i = 0; i < amount; ++i) {
         res.data.push_front(0);
     };
     return res;
+}
+
+// shift right
+BigInt shiftRight(BigInt bn, uint16_t amount) {
+    BigInt res = bn;
+    for (size_t i = 0; i < amount; ++i) {
+        res.data.pop_front();
+    };
+
+    if (res.data.empty()) {
+        res.sign = POSITIVE;
+        res.data.push_back(0);
+    }
+
+    return res;
+}
+
+pair<BigInt, BigInt> divmod(BigInt lhs, BigInt rhs) {
+    if (!rhs.equalZero()) {
+        throw overflow_error("Divide by zero exception");
+    }
+
+    BigInt l(0);
+    // l.sign = NEGATIVE;
+    BigInt r(lhs);
+    r.sign = POSITIVE;
+    BigInt t(1);
+    t.sign = lhs.sign;
+    while (l <= r) {
+        BigInt quotient = shiftRight(l + r, 1);
+        quotient.sign = lhs.sign;
+        BigInt remainder = lhs - (rhs * quotient);
+
+        if (remainder.equalZero() == -1) {
+            r = quotient - t;
+        } else if (remainder >= rhs) {
+            l = quotient + t;
+        } else {
+            return make_pair(quotient, remainder);
+        }
+    }
+    throw overflow_error("Could not find the quotient/remainder");
 }
 
 BigInt BigInt::karatsubaMultiply(BigInt a, BigInt b) {
@@ -104,7 +149,7 @@ BigInt BigInt::karatsubaMultiply(BigInt a, BigInt b) {
     BigInt p3 = karatsubaMultiply(al + ah, bl + bh);
     BigInt p2 = karatsubaMultiply(al, bl);  // d
     BigInt p1 = karatsubaMultiply(ah, bh);  // a
-    BigInt ans = shift(p1, 2 * (n - n >> 1)) + shift(p3 - (p1 + p2), n - (n >> 1)) + p2;
+    BigInt ans = shiftLeft(p1, 2 * (n - n / 2)) + shiftLeft(p3 - (p1 + p2), n - (n / 2)) + p2;
     ans.trim();
 
     return ans;
@@ -170,6 +215,14 @@ BigInt BigInt::operator-(BigInt rhs) {
     return *this + (-rhs);
 }
 
+BigInt BigInt::operator/(BigInt rhs) {
+    return divmod(*this, rhs).first;
+}
+
+BigInt BigInt::operator%(BigInt rhs) {
+    return divmod(*this, rhs).second;
+}
+
 /* COMPARATOR */
 
 bool BigInt::operator<(BigInt rhs) {
@@ -194,4 +247,31 @@ bool BigInt::operator<=(BigInt rhs) {
 }
 bool BigInt::operator>=(BigInt rhs) {
     return !(*this < rhs);
+}
+
+bool BigInt::operator==(BigInt rhs) {
+    // trimmed!
+    if (!this->equalZero() && !rhs.equalZero()) {
+        return true;
+    }
+
+    if (this->sign != rhs.sign || this->size() != rhs.size()) {
+        return false;
+    }
+
+    for (size_t i = 0; i < this->size(); ++i) {
+        if (this->data[i] != rhs.data[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+int8_t BigInt::equalZero() {
+    this->trim();
+    if (this->size() == 1 && this->data[0] == 0) {
+        return 0;
+    }
+    return this->sign;
 }

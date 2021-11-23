@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <stdexcept>
 
 using namespace std;
 
@@ -42,8 +43,10 @@ class BigInt {
 
     void resize(const size_t& size, const int8_t& val);
     void trim();
-    BigInt shift(BigInt data, uint16_t amount);
+    friend BigInt shiftLeft(BigInt data, uint16_t amount);
+    friend BigInt shiftRight(BigInt data, uint16_t amount);
     BigInt karatsubaMultiply(BigInt a, BigInt b);
+    friend pair<BigInt, BigInt> divmod(BigInt lhs, BigInt rhs);
 
    public:
     BigInt(){}
@@ -61,9 +64,12 @@ class BigInt {
     void printRawBin();
     BigInt abs();
 
+
     BigInt operator+(BigInt rhs);
     BigInt operator-(BigInt rhs);
     BigInt operator*(BigInt rhs);
+    BigInt operator/(BigInt rhs);
+    BigInt operator%(BigInt rhs);
 
     BigInt operator-();
 
@@ -71,4 +77,6 @@ class BigInt {
     bool operator>(BigInt rhs);
     bool operator<=(BigInt rhs);
     bool operator>=(BigInt rhs);
+    bool operator==(BigInt rhs);
+    int8_t equalZero();
 };
